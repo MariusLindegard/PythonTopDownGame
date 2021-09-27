@@ -54,15 +54,21 @@ def generate_noise(width, height):
 
 class World:
     def __init__(self):
-        self.map = generate_noise(100, 100)
+        self.chunks = [
+            [generate_noise(100, 100), generate_noise(100, 100), generate_noise(100, 100)],
+            [generate_noise(100, 100), generate_noise(100, 100), generate_noise(100, 100)],
+            [generate_noise(100, 100), generate_noise(100, 100), generate_noise(100, 100)],
+            ]
+            
+        self.current_chunk = self.chunks[1][1]
 
 world = World()
-print(world.map)
+print(world.current_chunk)
     
 class Player:
     def __init__(self):
-        self.x = 100
-        self.y = 100
+        self.x = SCREEN_WIDTH / 2 - 5
+        self.y = SCREEN_HEIGTH / 2 - 5
         self.color = (255, 0, 255)
         self.movement_speed = 10
         self.health = 100
@@ -73,15 +79,27 @@ class Player:
 
     def move_left(self):
         self.x -= self.movement_speed
+        if self.x == 0:
+            world.current_chunk = world.chunks[1][0]
+            self.x = SCREEN_WIDTH - 50
     
     def move_right(self):
         self.x += self.movement_speed
+        if self.x == SCREEN_WIDTH:
+            world.current_chunk = world.chunks[1][2]
+            self.x = 50
 
     def move_up(self):
         self.y -= self.movement_speed
+        if self.y == 0:
+            world.current_chunk = world.chunks[0][1]
+            self.y = SCREEN_HEIGTH - 50
     
     def move_down(self):
         self.y += self.movement_speed
+        if self.y == SCREEN_HEIGTH:
+            world.current_chunk = world.chunks[2][1]
+            self.y = 50
 
 
 player_one = Player()
@@ -103,14 +121,16 @@ def draw():
     column = 0
     tile_size = 10
 
-    for tile in world.map:
+
+
+    for tile in world.current_chunk:
         for rows in tile:
             if rows > 0.7:
-                pygame.draw.rect(screen, (165, 0, 78), (column, row, tile_size, tile_size))
+                pygame.draw.rect(screen, (165, 0, 78), (column - player_one.x, row - player_one.y, tile_size, tile_size))
             elif rows > 0.4:
-                pygame.draw.rect(screen, (165, 255, 78), (column, row, tile_size, tile_size))
+                pygame.draw.rect(screen, (165, 255, 78), (column - player_one.x, row - player_one.y, tile_size, tile_size))
             else:
-                pygame.draw.rect(screen, (0, 185, 10), (column, row, tile_size, tile_size))
+                pygame.draw.rect(screen, (0, 185, 10), (column - player_one.x, row - player_one.y, tile_size, tile_size))
                 
 
             row += tile_size
@@ -118,7 +138,7 @@ def draw():
         row = 0
         column += tile_size
 
-    pygame.draw.rect(screen, player_one.color, (player_one.x, player_one.y, 10, 10))
+    pygame.draw.rect(screen, player_one.color, (SCREEN_WIDTH / 2 - 5, SCREEN_HEIGTH / 2 - 5, 10, 10))
     label = pygame.font.SysFont('monospace', 15).render(f'Health: {player_one.health}', 1, (255, 0, 255))
     screen.blit(label, (pygame.display.get_surface().get_width()-100, 10))
     
@@ -167,6 +187,4 @@ while True:
     else:
         tick()
         fps_clock.tick(60)
-
-
 
